@@ -1,0 +1,171 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  infra
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
+    LoggingConfig:
+      LogFormat: JSON
+Resources:
+
+  SqsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: PostRdsClusterQueue
+
+  ApiGateway: 
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: CreateRdsCluster
+      Description: |
+        Provides developers with a method to create
+        RDS clusters on-demand.
+      # TODO: AccessLogSetting:
+      ApiKeySourceType: HEADER
+      Auth:
+        ApiKeyRequired: true
+        UsagePlan:
+          CreateUsagePlan: PER_API
+          Description: |
+            Usage plan for RDSCluster
+          Quota:
+            Limit: 50
+            Period: DAY
+          Throttle:
+            BurstLimit: 2
+            RateLimit: 1
+      DefinitionBody:
+        swagger: '2.0'
+        info:
+          title: API Gateway - Developer Platform
+          version: 1.0
+          description: |
+            This API Gateway enables developers to create
+            different AWS resources on-demand and without
+            manual work or interventions.
+        paths:
+          /rdscluster:
+            post:
+              tags:
+                - rdsCluster
+              summary: Create an RDS cluster
+              operationId: postRdsCluster
+              parameters:
+                - in: body
+                  name: body
+                  description: Create an RDS cluster
+                  required: true
+                  schema:
+                    $ref: '#/definitions/RdsCluster'
+              responses:
+                '200':
+                  description: Successful operation
+              x-amazon-apigateway-integration:
+                type: "aws"
+                httpMethod: "POST"
+                uri:
+                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:sqs:path/${AWS::AccountId}/${SqsQueue.QueueName}"
+                credentials:
+                  Fn::GetAtt: ApiGatewaySqsRole.Arn
+                requestParameters:
+                  integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+                requestTemplates:
+                  application/json: "Action=SendMessage&MessageBody=$input.body"
+                responses:
+                  default:
+                    statusCode: "200"
+        definitions:
+          RdsCluster:
+            type: object
+            properties:
+              clusterName:
+                type: string
+                description: "Name of the RDS cluster"
+              engine:
+                type: string
+                description: "Database engine type"
+              instanceCount:
+                type: integer
+                description: "Number of instances in the cluster"
+ 
+      # TODO: Domain: Custom Domain Name
+      # TODO: EndpointConfiguration:
+      Models:
+        rdscluster:
+          "$schema": "http://json-schema.org/draft-04/schema#"
+          title: CreateRdsCluster
+          type: object
+          required: 
+            - DatabaseName
+            - DatabaseEngine
+            - Environment
+          properties:
+            DatabaseName:
+              type: string
+            DatabaseEngine:
+              type: string
+              enum:
+                - MySQL
+                - PostgreSQL
+            Environment:
+              type: string
+              enum:
+                - Prod
+                - Dev
+      StageName: Prod
+      TracingEnabled: false
+
+  ApiGatewaySqsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: "apigateway.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "ApiGatewaySQSPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource:
+                  Fn::GetAtt: SqsQueue.Arn
+
+  LambdaConsumer:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handler.lambda_handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          QUEUE_URL: !GetAtt SqsQueue.QueueUrl
+          TIMEOUT: '3'
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Enabled: true
+            Queue: !GetAtt SqsQueue.Arn
+            BatchSize: 1
+    
+  
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  ApiGateway:
+    Description: API Gateway endpoint URL for Prod stage for Hello World function
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/rdscluster/"
+
