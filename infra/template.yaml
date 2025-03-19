@@ -67,6 +67,7 @@ Resources:
               x-amazon-apigateway-integration:
                 type: "aws"
                 httpMethod: "POST"
+                passthroughBehavior: NEVER
                 uri:
                   Fn::Sub: "arn:aws:apigateway:${AWS::Region}:sqs:path/${AWS::AccountId}/${SqsQueue.QueueName}"
                 credentials:
@@ -159,8 +160,7 @@ Resources:
             Enabled: true
             Queue: !GetAtt SqsQueue.Arn
             BatchSize: 1
-    
-  
+
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
