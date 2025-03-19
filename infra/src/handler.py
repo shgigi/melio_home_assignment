@@ -3,7 +3,6 @@ import os
 import logging
 import json
 from github import Github
-from datetime import datetime
 
 
 logger = logging.getLogger()
@@ -21,8 +20,7 @@ def create_pr(message: dict, owner: str, repo: str, token: str) -> None:
     database_name = body["DatabaseName"]
     database_engine = body["DatabaseEngine"]
     database_environ = body["Environment"]
-    now = datetime.now().strftime("%Y-%m-%d-%H:%M")
-    branch_name = f"{database_name}-{now}"
+    branch_name = f"{database_name}"
 
     g = Github(token)
     g_repo = g.get_repo(f"{owner}/{repo}")
