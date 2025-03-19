@@ -37,19 +37,22 @@ def create_pr(message: dict, owner: str, repo: str, token: str) -> None:
     environment     = "{database_environ}"
     """
 
-    g_repo.create_file(
+    res = g_repo.create_file(
         branch=branch_name,
         path=varfile_path,
         content=varfile_content,
         message=f"RDS cluster {database_name}",
     )
+    logger.info(res)
 
-    g_repo.create_pull(
+    res = g_repo.create_pull(
         title=f"RDS Cluster for {database_name}",
         body=f"Configuration for RDS cluster {database_name}",
         base=master_branch,
         head=branch_name,
     )
+
+    logger.info(res)
 
 
 def lambda_handler(event, context):
