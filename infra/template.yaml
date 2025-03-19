@@ -154,7 +154,7 @@ Resources:
       Environment:
         Variables:
           QUEUE_URL: !GetAtt SqsQueue.QueueUrl
-          GITHUB_TOKEN: "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" ## BADDDDDD!!!!
+          GITHUB_TOKEN: "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" ## BADDDDDD!!!!
       Events:
         SQSEvent:
           Type: SQS
