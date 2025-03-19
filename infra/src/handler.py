@@ -30,7 +30,7 @@ def create_pr(message: dict, owner: str, repo: str, token: str) -> None:
     ref = f"refs/heads/{branch_name}"
     g_repo.create_git_ref(ref=ref, sha=latest_sha)
 
-    varfile_path = f"clusters/{database_name}"
+    varfile_path = f"clusters/{database_name}.tfvars"
     varfile_content = f"""
     database_name   = "{database_name}"
     database_engine = "{database_engine}"
@@ -48,7 +48,7 @@ def create_pr(message: dict, owner: str, repo: str, token: str) -> None:
     res = g_repo.create_pull(
         title=f"RDS Cluster for {database_name}",
         body=f"Configuration for RDS cluster {database_name}",
-        base=master_branch,
+        base="master",
         head=branch_name,
     )
 
