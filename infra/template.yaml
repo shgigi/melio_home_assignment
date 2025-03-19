@@ -145,6 +145,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/
+      Layers:
+        - !Ref PythonLayer
       Handler: handler.lambda_handler
       Runtime: python3.12
       Architectures:
@@ -152,7 +154,7 @@ Resources:
       Environment:
         Variables:
           QUEUE_URL: !GetAtt SqsQueue.QueueUrl
-          TIMEOUT: '3'
+          GITHUB_TOKEN: "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" ## BADDDDDD!!!!
       Events:
         SQSEvent:
           Type: SQS
@@ -160,6 +162,18 @@ Resources:
             Enabled: true
             Queue: !GetAtt SqsQueue.Arn
             BatchSize: 1
+
+  PythonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      CompatibleArchitectures:
+        - x86_64
+      CompatibleRuntimes:
+        - python3.12
+      ContentUri: src/layer
+      Description: |
+        Provides the lambda functions with required packages
+      RetentionPolicy: Delete
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
