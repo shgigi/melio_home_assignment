@@ -65,4 +65,4 @@ workflows:
       - handle_pr:
           filters:
             branches:
-              only: test
+              only: handle-pr
