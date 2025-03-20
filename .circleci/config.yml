@@ -74,7 +74,7 @@ workflows:
   #           - build-layer
   deploy_tf_rds_cluster:
     jobs:
-      - deploy_cluster:
+      - deploy-cluster:
           filters:
             branches:
               only: test
