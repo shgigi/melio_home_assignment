@@ -35,7 +35,7 @@ jobs:
           region: ${AWS_REGION}
       - sam/install
       - sam/deploy:
-          capabilities: CAPABILIY_IAM
+          capabilities: CAPABILITY_IAM
           region: ${AWS_REGION}
           resolve_s3: true
           stack_name: infra
