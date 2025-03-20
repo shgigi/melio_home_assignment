@@ -1,36 +1,19 @@
-# This config was automatically generated from your source code
-# Stacks detected: deps:python:infra/src
 version: 2.1
+
 orbs:
-  python: circleci/python@2
-jobs:
-  test-python:
-    # Install dependencies and run tests
-    docker:
-      - image: cimg/python:3.8-node
-    working_directory: ~/project/infra/src
-    steps:
-      - checkout:
-          path: ~/project
-      - python/install-packages
-      - run:
-          name: Run tests
-          command: pytest --junitxml=junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
-      - store_test_results:
-          path: junit.xml
-  deploy:
-    # This is an example deploy job, not actually used by the workflow
-    docker:
-      - image: cimg/base:stable
-    steps:
-      # Replace this with steps to deploy to users
-      - run:
-          name: deploy
-          command: '#e.g. ./deploy.sh'
+  sam: circleci/aws-sam-serverless@6.1.0
+  aws-cli: circleci/aws-cli@5.2.0
+  terraform: circleci/terraform@3.6.0
+  python: circleci/python@3.0.0
+
 workflows:
-  build-and-test:
+  build_and_deploy_sam:
     jobs:
-      - test-python
-    # - deploy:
-    #     requires:
-    #       - test-python
+      - sam/deploy:
+          auth:
+            - aws-cli/setup:
+              access_key_id: AKIATX3PH5WFKTZTMBE4
+              aws_secret_access_key: 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
+              region: eu-west-1
+          base_dir: infra/
+          
