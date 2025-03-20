@@ -61,4 +61,8 @@ workflows:
   #           - build-layer
   deploy_tf_rds_cluster:
     jobs:
-      - handle_pr
+      - handle_pr:
+          filters:
+            branches:
+              only: test
+
