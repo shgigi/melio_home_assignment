@@ -22,7 +22,8 @@ jobs:
             - layer
 
   deploy-serverless:
-    executor: sam/default
+    docker:
+      - image: cimg/python:3.12
     steps:
       - attach_workspace:
           at: infra/src/
@@ -31,6 +32,7 @@ jobs:
           aws_access_key_id: ${AWS_ACCESS_KEY}
           aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY}
           region: ${AWS_REGION}
+      - sam/install
       - sam/deploy:
           capabilities: CAPABILITIY_IAM
           region: ${AWS_REGION}
