@@ -22,8 +22,7 @@ jobs:
             - layer
 
   deploy-serverless:
-    docker:
-      - image: cimg/python:3.12
+    executor: sam/default
     steps:
       - attach_workspace:
           at: infra/src/
