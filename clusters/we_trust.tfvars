@@ -1,3 +1,3 @@
 environment = "dev"
 database_engine = "mysql"
-database_name = "unreal_engine"
+database_name = "we_trust"

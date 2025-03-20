@@ -78,7 +78,7 @@ jobs:
             echo "Deploying cluster: $CLUSTER_NAME"
             cd terraform/
             terraform init || { echo "Terraform init failed"; exit 1; }
-            terraform apply -var-file=clusters/$CLUSTER_NAME.tfvars -auto-approve || { echo "Terraform apply failed"; exit 1; }
+            terraform apply -var-file=../clusters/$CLUSTER_NAME.tfvars -auto-approve || { echo "Terraform apply failed"; exit 1; }
 
 workflows:
   # build_and_deploy_sam:
