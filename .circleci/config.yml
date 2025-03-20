@@ -8,19 +8,28 @@ orbs:
 
 jobs:
   build-layer:
-    executor: python/default
+    executor: python/3.12
     steps:
       - checkout
+      - run: mkdir -p infra/src/layer/python/lib/python3.12/site-packages 
       - python/install-packages:
           pkg-manager: pip
           pip-dependency-file: infra/src/requirements.txt
           args: '-t infra/src/layer/python/lib/python3.12/site-packages'
-
-workflows:
-  build_and_deploy_sam:
-    jobs:
-      - build-layer
+      - persist_to_workspace:
+          root: infra/src/
+          paths: 
+            - layer
+  deploy-wrapper:
+    docker:
+      - image: cimg/python3.12
+    steps:
+      - attach_workspace:
+          at: infra/src/
+      - run: ls -la infra/src/layer
       - sam/deploy:
+          requires:
+            - build-layer
           auth:
             - aws-cli/setup:
                 aws_access_key_id: ${AWS_ACCESS_KEY}
@@ -32,4 +41,11 @@ workflows:
           region: eu-west-1
           validate: false
           resolve_s3: true
+
+
+workflows:
+  build-and-deploy-sam:
+    jobs:
+      - build-layer
+      - deploy-wrapper
           
