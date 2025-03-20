@@ -13,7 +13,7 @@ jobs:
       - checkout
       - python/install-packages:
           pkg-manager: pip
-          pip-dependency-file: infra/requirements.txt
+          pip-dependency-file: infra/src/requirements.txt
           args: '-t infra/src/layer/python/lib/python3.12/site-packages'
 
 workflows:
