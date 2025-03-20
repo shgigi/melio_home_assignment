@@ -12,9 +12,9 @@ workflows:
       - sam/deploy:
           auth:
             - aws-cli/setup:
-              access_key_id: ${AWS_ACCESS_KEY}
-              aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY}
-              region: eu-west-${AWS_REGION}
+                access_key_id: ${AWS_ACCESS_KEY}
+                aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+                region: eu-west-${AWS_REGION}
           base_dir: infra/
           template: infra/template.yaml
           stack_name: infra
