@@ -50,11 +50,7 @@ jobs:
       - run:
           name: Fetch changed files from GitHub API
           command: |
-            PR_NUMBER=$(echo "$CIRCLE_PULL_REQUEST" | awk -F/ '{print $NF}')
-            echo "PR Number: $PR_NUMBER"
-            curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
-                "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pulls/${PR_NUMBER}/files" \
-            | jq -r '.[].filename'
+            env | sort
 
 workflows:
   # build_and_deploy_sam:
