@@ -6,13 +6,20 @@ orbs:
   terraform: circleci/terraform@3.6.0
   python: circleci/python@3.0.0
 
-workflows:
-  build_and_deploy_sam:
-    jobs:
+jobs:
+  build-layer:
+    executor: python/default
+    steps:
+      - checkout
       - python/install-packages:
           pkg-manager: pip
           pip-dependency-file: infra/requirements.txt
           args: '-t infra/src/layer/python/lib/python3.12/site-packages'
+
+workflows:
+  build_and_deploy_sam:
+    jobs:
+      - build-layer
       - sam/deploy:
           auth:
             - aws-cli/setup:
