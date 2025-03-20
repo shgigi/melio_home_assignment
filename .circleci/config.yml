@@ -1,15 +1,14 @@
 version: 2.1
 
 orbs:
-  sam: circleci/aws-sam-serverless@6.1.0
   aws-cli: circleci/aws-cli@5.2.0
-  terraform: circleci/terraform@3.6.0
+  sam: circleci/aws-sam-serverless@6.1.0
   python: circleci/python@3.0.0
 
 jobs:
   build-layer:
     docker:
-      - image: cimg/python3.12
+      - image: cimg/python:3.12
     steps:
       - checkout
       - run: mkdir -p infra/src/layer/python/lib/python3.12/site-packages 
@@ -21,30 +20,33 @@ jobs:
           root: infra/src/
           paths: 
             - layer
-  deploy-wrapper:
+
+  deploy-serverless:
     docker:
-      - image: cimg/python3.12
+      - image: cimg/python:3.12
     steps:
       - attach_workspace:
           at: infra/src/
-      - run: ls -la infra/src/layer
+      - run: ls -la infra/src/layer # Debugging: Ensure layer exists
+      - aws-cli/setup:
+          aws-access-key-id: ${AWS_ACCESS_KEY}
+          aws-secret-access-key: ${AWS_SECRET_ACCESS_KEY}
+          region: ${AWS_REGION}
+      - sam/install:
+          python_version: 3.12
       - sam/deploy:
-          auth:
-            - aws-cli/setup:
-                aws_access_key_id: ${AWS_ACCESS_KEY}
-                aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY}
-                region: eu-west-${AWS_REGION}
-          base_dir: infra/
-          template: infra/template.yaml
-          stack_name: infra
-          region: eu-west-1
-          validate: false
+          capabilities: CAPABILITIY_IAM
+          region: ${AWS_REGION}
           resolve_s3: true
+          stack_name: infra
+          template: infra/template.yaml
+          no_fail_on_empty_changeset: true
 
 
 workflows:
-  build-and-deploy-sam:
+  build_and_deploy_sam:
     jobs:
       - build-layer
-      - deploy-wrapper
-          
+      - deploy-serverless:
+          requires:
+            - build-layer
