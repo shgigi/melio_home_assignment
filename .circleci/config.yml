@@ -25,6 +25,7 @@ jobs:
     docker:
       - image: cimg/python:3.12
     steps:
+      - checkout
       - attach_workspace:
           at: infra/src/
       - run: ls -la infra/src/layer # Debugging: Ensure layer exists
