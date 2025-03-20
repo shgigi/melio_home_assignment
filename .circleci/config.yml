@@ -47,7 +47,7 @@ jobs:
     docker:
       - image: cimg/python:3.12
     steps:
-      - run: echo $CIRCLE_PULL_REQUEST
+      - run: echo ${CIRCLE_PULL_REQUEST}
 
 workflows:
   build_and_deploy_sam:
