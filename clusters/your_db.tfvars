@@ -1,3 +1,3 @@
 environment = "dev"
 database_engine = "mysql"
-database_name = "my_db"
+database_name = "your_db"
