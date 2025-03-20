@@ -18,4 +18,5 @@ workflows:
           base_dir: infra/
           template: template.yaml
           stack_name: infra
+          region: eu-west-1
           
