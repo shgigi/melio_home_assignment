@@ -8,7 +8,8 @@ orbs:
 
 jobs:
   build-layer:
-    executor: python/3.12
+    docker:
+      - image: cimg/python3.12
     steps:
       - checkout
       - run: mkdir -p infra/src/layer/python/lib/python3.12/site-packages 
