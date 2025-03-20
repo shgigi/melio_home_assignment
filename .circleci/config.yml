@@ -1,0 +1,61 @@
+version: 2.1
+
+orbs:
+  aws-cli: circleci/aws-cli@5.2.0
+  sam: circleci/aws-sam-serverless@6.1.0
+  python: circleci/python@3.0.0
+
+jobs:
+  build-layer:
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - checkout
+      - run: mkdir -p infra/src/layer/python/lib/python3.12/site-packages 
+      - python/install-packages:
+          pkg-manager: pip
+          pip-dependency-file: infra/src/requirements.txt
+          args: '-t infra/src/layer/python/lib/python3.12/site-packages'
+      - persist_to_workspace:
+          root: infra/src/
+          paths: 
+            - layer
+
+  deploy-serverless:
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - checkout
+      - attach_workspace:
+          at: infra/src/
+      - run: ls -la infra/src/layer # Debugging: Ensure layer exists
+      - aws-cli/setup:
+          aws_access_key_id: ${AWS_ACCESS_KEY}
+          aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+          region: ${AWS_REGION}
+      - sam/install
+      - sam/deploy:
+          capabilities: CAPABILITY_IAM
+          region: ${AWS_REGION}
+          resolve_s3: true
+          stack_name: infra
+          template: infra/template.yaml
+          no_fail_on_empty_changeset: true
+          arguments: "--no-confirm-changeset"
+
+  handle_pr:
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - run: echo $CIRCLE_PULL_REQUEST
+
+workflows:
+  build_and_deploy_sam:
+    jobs:
+      - build-layer
+      - deploy-serverless:
+          requires:
+            - build-layer
+  deploy_tf_rds_cluster:
+    jobs:
+      - handle_pr
