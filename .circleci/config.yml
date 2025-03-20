@@ -29,8 +29,6 @@ jobs:
           at: infra/src/
       - run: ls -la infra/src/layer
       - sam/deploy:
-          requires:
-            - build-layer
           auth:
             - aws-cli/setup:
                 aws_access_key_id: ${AWS_ACCESS_KEY}
