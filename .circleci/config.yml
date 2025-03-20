@@ -29,8 +29,8 @@ jobs:
           at: infra/src/
       - run: ls -la infra/src/layer # Debugging: Ensure layer exists
       - aws-cli/setup:
-          aws-access-key-id: ${AWS_ACCESS_KEY}
-          aws-secret-access-key: ${AWS_SECRET_ACCESS_KEY}
+          aws_access_key_id: ${AWS_ACCESS_KEY}
+          aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY}
           region: ${AWS_REGION}
       - sam/install:
           python_version: 3.12
