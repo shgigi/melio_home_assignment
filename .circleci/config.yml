@@ -56,7 +56,6 @@ jobs:
       - run:
           name: Detect Changed Cluster and Deploy
           command: |
-            git fetch origin $CIRCLE_BRANCH --depth=1 --quiet
             CHANGED_FILE=$(git diff --name-only origin/$CIRCLE_BRANCH HEAD | grep -E '^clusters/.+\.tfvars$' | head -n 1)
 
             if [[ -z "$CHANGED_FILE" ]]; then
