@@ -20,5 +20,5 @@ workflows:
           stack_name: infra
           region: eu-west-1
           validate: false
-          resolve-s3: true
+          resolve_s3: true
           
