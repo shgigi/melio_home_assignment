@@ -16,7 +16,7 @@ workflows:
               aws_secret_access_key: nfw6hlejWro9yqXd1KNkcDBCD1rCiR6Qx4FZUO0V
               region: eu-west-1
           base_dir: infra/
-          template: template.yaml
+          template: infra/template.yaml
           stack_name: infra
           region: eu-west-1
           
