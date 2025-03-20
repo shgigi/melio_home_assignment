@@ -41,6 +41,7 @@ jobs:
           stack_name: infra
           template: infra/template.yaml
           no_fail_on_empty_changeset: true
+          arguments: "--no-confirm-changeset"
 
 
 workflows:
