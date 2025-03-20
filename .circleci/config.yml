@@ -42,16 +42,28 @@ jobs:
           template: infra/template.yaml
           no_fail_on_empty_changeset: true
           arguments: "--no-confirm-changeset"
-
-  handle_pr:
-    docker:
-      - image: cimg/python:3.12
+   
+  deploy-cluster:
+    executor: terraform
     steps:
+      - checkout
       - run:
-          name: Fetch changed files from GitHub API
+          name: Detect Changed Cluster and Deploy
           command: |
-            env | sort
-      - run: echo "dummy"
+            git fetch origin $CIRCLE_BRANCH --depth=1
+            CHANGED_FILE=$(git diff --name-only origin/$CIRCLE_BRANCH HEAD | grep -E '^clusters/.+\.tfvars$' | head -n 1)
+
+            if [[ -z "$CHANGED_FILE" ]]; then
+              echo "No cluster changes detected. Exiting."
+              exit 0
+            fi
+
+            CLUSTER_NAME=$(echo "$CHANGED_FILE" | sed -E 's|clusters/(.+)\.tfvars|\1|')
+
+            echo "Deploying cluster: $CLUSTER_NAME"
+
+            terraform init
+            terraform apply -var-file=clusters/$CLUSTER_NAME.tfvars -auto-approve
 
 workflows:
   # build_and_deploy_sam:
@@ -62,7 +74,8 @@ workflows:
   #           - build-layer
   deploy_tf_rds_cluster:
     jobs:
-      - handle_pr:
+      - deploy_cluster:
           filters:
             branches:
               only: test
+              
