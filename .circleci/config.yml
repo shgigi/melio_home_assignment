@@ -51,6 +51,7 @@ jobs:
           name: Fetch changed files from GitHub API
           command: |
             env | sort
+      - run: echo "dummy"
 
 workflows:
   # build_and_deploy_sam:
@@ -65,4 +66,3 @@ workflows:
           filters:
             branches:
               only: test
-
