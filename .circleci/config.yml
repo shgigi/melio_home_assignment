@@ -47,15 +47,18 @@ jobs:
     docker:
       - image: cimg/python:3.12
     steps:
-      - run: echo $CIRCLE_PULL_REQUEST
+      - run:
+          name: Fetch changed files from GitHub API
+          command: |
+            env | sort
 
 workflows:
-  build_and_deploy_sam:
-    jobs:
-      - build-layer
-      - deploy-serverless:
-          requires:
-            - build-layer
+  # build_and_deploy_sam:
+  #   jobs:
+  #     - build-layer
+  #     - deploy-serverless:
+  #         requires:
+  #           - build-layer
   deploy_tf_rds_cluster:
     jobs:
       - handle_pr
