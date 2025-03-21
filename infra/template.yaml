@@ -1,69 +1,74 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: >
-  infra
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Description: 'infra
+
+  '
 Globals:
   Function:
     Timeout: 30
-
-    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
     LoggingConfig:
       LogFormat: JSON
 Resources:
-
   SqsQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: PostRdsClusterQueue
-
-
+    Metadata:
+      SamResourceId: SqsQueue
   QueuePolicy:
     Type: AWS::SQS::QueuePolicy
     Properties:
       Queues:
-        - !Ref SqsQueue
+      - !Ref SqsQueue
       PolicyDocument:
-        Version: 2012-10-17
+        Version: '2012-10-17'
         Statement:
-          - Sid: AllowApiGatewayPost
-            Principal: 
-              Service: "apigateway.amazonaws.com"
-            Effect: "Allow"
-            Action:
-              - "sqs:SendMessage"
-            Resource: !GetAtt SqsQueue.Arn
-            Condition:
-              ArnEquals:
-                aws:SourceArn:
-                  !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/Prod/POST"
-          - Sid: AllowLambdaFunction
-            Principal:
-              Service: "lambda.amazonaws.com"
-            Effect: Allow
-            Resource: !GetAtt SqsQueue.Arn
-            Action:
-              - "sqs:ReceiveMessage"
-              - "sqs:DeleteMessage"
-              - "sqs:GetQueueAttributes"
-              - "sqs:ChangeMessageVisibility"
-
-
-  ApiGateway: 
+        - Sid: AllowApiGatewayPost
+          Principal:
+            Service: apigateway.amazonaws.com
+          Effect: Allow
+          Action:
+          - sqs:SendMessage
+          Resource:
+            Fn::GetAtt:
+            - SqsQueue
+            - Arn
+          Condition:
+            ArnEquals:
+              aws:SourceArn:
+                Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/Prod/POST
+        - Sid: AllowLambdaFunction
+          Principal:
+            Service: lambda.amazonaws.com
+          Effect: Allow
+          Resource:
+            Fn::GetAtt:
+            - SqsQueue
+            - Arn
+          Action:
+          - sqs:ReceiveMessage
+          - sqs:DeleteMessage
+          - sqs:GetQueueAttributes
+          - sqs:ChangeMessageVisibility
+    Metadata:
+      SamResourceId: QueuePolicy
+  ApiGateway:
     Type: AWS::Serverless::Api
     Properties:
       Name: CreateRdsCluster
-      Description: |
-        Provides developers with a method to create
+      Description: 'Provides developers with a method to create
+
         RDS clusters on-demand.
-      # TODO: AccessLogSetting:
+
+        '
       ApiKeySourceType: HEADER
       Auth:
         ApiKeyRequired: true
         UsagePlan:
           CreateUsagePlan: PER_API
-          Description: |
-            Usage plan for RDSCluster
+          Description: 'Usage plan for RDSCluster
+
+            '
           Quota:
             Limit: 50
             Period: DAY
@@ -75,126 +80,132 @@ Resources:
         info:
           title: API Gateway - Developer Platform
           version: 1.0
-          description: |
-            This API Gateway enables developers to create
+          description: 'This API Gateway enables developers to create
+
             different AWS resources on-demand and without
+
             manual work or interventions.
+
+            '
         paths:
           /rdscluster:
             post:
               tags:
-                - rdsCluster
+              - rdsCluster
               summary: Create an RDS cluster
               operationId: postRdsCluster
               parameters:
-                - in: body
-                  name: body
-                  description: Create an RDS cluster
-                  required: true
-                  schema:
-                    $ref: '#/definitions/RdsCluster'
+              - in: body
+                name: body
+                description: Create an RDS cluster
+                required: true
+                schema:
+                  $ref: '#/definitions/RdsCluster'
               responses:
                 '200':
                   description: Successful operation
+              x-amazon-apigateway-request-validator: ValidateBody
               x-amazon-apigateway-integration:
-                type: "aws"
-                httpMethod: "POST"
+                type: aws
+                httpMethod: POST
                 passthroughBehavior: NEVER
                 uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:sqs:path/${AWS::AccountId}/${SqsQueue.QueueName}"
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:sqs:path/${AWS::AccountId}/${SqsQueue.QueueName}
                 credentials:
                   Fn::GetAtt: ApiGatewaySqsRole.Arn
                 requestParameters:
-                  integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+                  integration.request.header.Content-Type: '''application/x-www-form-urlencoded'''
                 requestTemplates:
-                  application/json: "Action=SendMessage&MessageBody=$input.body"
+                  application/json: Action=SendMessage&MessageBody=$input.body
                 responses:
                   default:
-                    statusCode: "200"
+                    statusCode: '200'
         definitions:
           RdsCluster:
-            "$schema": "http://json-schema.org/draft-04/schema#"
-            title: CreateRdsCluster
             type: object
             required:
-              - DatabaseName
-              - DatabaseEngine
-              - Environment
-            properties:
-              DatabaseName:
-                type: string
-                description: "Name of the RDS cluster"
-              DatabaseEngine:
-                type: string
-                description: "Database engine type"
-                pattern: "^(?i)(mysql|postgresql)$"
-              Environment:
-                type: string
-                description: "Environment of the database"
-                pattern: "^(?i)(prod|dev)$"
- 
-      # TODO: Domain: Custom Domain Name
-      # TODO: EndpointConfiguration:
-      Models:
-        rdscluster:
-          "$schema": "http://json-schema.org/draft-04/schema#"
-          title: CreateRdsCluster
-          type: object
-          required: 
             - DatabaseName
             - DatabaseEngine
             - Environment
+            properties:
+              DatabaseName:
+                type: string
+              DatabaseEngine:
+                type: string
+                enum:
+                - MySQL
+                - PostgreSQL
+              Environment:
+                type: string
+                enum:
+                - Prod
+                - Dev
+        x-amazon-apigateway-request-validators:
+            ValidateBody:
+              validateRequestBody: true
+              validateRequestParameters: false
+      Models:
+        RdsCluster:
+          $schema: http://json-schema.org/draft-04/schema#
+          title: CreateRdsCluster
+          type: object
+          required:
+          - DatabaseName
+          - DatabaseEngine
+          - Environment
           properties:
             DatabaseName:
               type: string
             DatabaseEngine:
               type: string
               enum:
-                - MySQL
-                - PostgreSQL
+              - MySQL
+              - PostgreSQL
             Environment:
               type: string
               enum:
-                - Prod
-                - Dev
+              - Prod
+              - Dev
       StageName: Prod
       TracingEnabled: false
-
+    Metadata:
+      SamResourceId: ApiGateway
   ApiGatewaySqsRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
-          - Effect: Allow
-            Principal:
-              Service: "apigateway.amazonaws.com"
-            Action: "sts:AssumeRole"
+        - Effect: Allow
+          Principal:
+            Service: apigateway.amazonaws.com
+          Action: sts:AssumeRole
       Policies:
-        - PolicyName: "ApiGatewaySQSPolicy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - sqs:SendMessage
-                Resource:
-                  Fn::GetAtt: SqsQueue.Arn
-
+      - PolicyName: ApiGatewaySQSPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - sqs:SendMessage
+            Resource:
+              Fn::GetAtt: SqsQueue.Arn
+    Metadata:
+      SamResourceId: ApiGatewaySqsRole
   LambdaConsumer:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/
-      Layers:
+      Layers: 
         - !Ref PythonLayer
       Handler: handler.lambda_handler
       Runtime: python3.12
       Architectures:
-        - x86_64
+      - x86_64
       Environment:
         Variables:
           QUEUE_URL: !GetAtt SqsQueue.QueueUrl
-          GITHUB_TOKEN: "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" ## BADDDDDD!!!!
+          GITHUB_TOKEN: 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
       Events:
         SQSEvent:
           Type: SQS
@@ -202,24 +213,22 @@ Resources:
             Enabled: true
             Queue: !GetAtt SqsQueue.Arn
             BatchSize: 1
-
+    Metadata:
+      SamResourceId: LambdaConsumer
   PythonLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       CompatibleArchitectures:
-        - x86_64
+      - x86_64
       CompatibleRuntimes:
-        - python3.12
+      - python3.12
       ContentUri: src/layer
-      Description: |
-        Provides the lambda functions with required packages
+      Description: 'Provides the lambda functions with required packages'
       RetentionPolicy: Delete
-
+    Metadata:
+      SamResourceId: PythonLayer
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   ApiGateway:
     Description: API Gateway endpoint URL for Prod stage for Hello World function
-    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/rdscluster/"
-
+    Value:
+      Fn::Sub: https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/rdscluster/

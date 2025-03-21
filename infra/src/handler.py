@@ -2,7 +2,10 @@ import boto3
 import os
 import logging
 import json
-from github import Github
+from github import (
+    Github,
+    GithubException
+    )
 
 
 logger = logging.getLogger()
@@ -28,7 +31,12 @@ def create_pr(message: dict, owner: str, repo: str, token: str) -> None:
     latest_sha = master_branch.commit.sha
 
     ref = f"refs/heads/{branch_name}"
-    g_repo.create_git_ref(ref=ref, sha=latest_sha)
+    try:
+        g_repo.create_git_ref(ref=ref, sha=latest_sha)
+    except GithubException as e:
+        if "422" in e.message:
+            logger.error("Branch already exists, stopping execution")
+            return
 
     varfile_path = f"clusters/{database_name}.tfvars"
     varfile_content = f"""
@@ -37,13 +45,20 @@ def create_pr(message: dict, owner: str, repo: str, token: str) -> None:
     environment     = "{database_environ}"
     """
 
-    res = g_repo.create_file(
-        branch=branch_name,
-        path=varfile_path,
-        content=varfile_content,
-        message=f"RDS cluster {database_name}",
-    )
-    logger.info(res)
+    try:
+        res = g_repo.create_file(
+            branch=branch_name,
+            path=varfile_path,
+            content=varfile_content,
+            message=f"RDS cluster {database_name}",
+        )
+        logger.info(res)
+    except GithubException as e:
+        if "sha" in e.message:
+            logger.error("Trying to update existing files not supported, stopping excecution")
+            return
+        else:
+            logger.error(e.message)
 
     res = g_repo.create_pull(
         title=f"RDS Cluster for {database_name}",
