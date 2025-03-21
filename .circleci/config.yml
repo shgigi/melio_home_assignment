@@ -69,10 +69,10 @@ jobs:
             else
               CLUSTER_NAME=$(echo "$CHANGED_FILE" | sed -E 's|clusters/(.+)\.tfvars|\1|')
 
-            echo "Deploying cluster: $CLUSTER_NAME"
-            cd terraform/
-            terraform init || { echo "Terraform init failed"; exit 1; }
-            terraform apply -var-file=../clusters/$CLUSTER_NAME.tfvars -auto-approve || { echo "Terraform apply failed"; exit 1; }
+              echo "Deploying cluster: $CLUSTER_NAME"
+              cd terraform/
+              terraform init || { echo "Terraform init failed"; exit 1; }
+              terraform apply -var-file=../clusters/$CLUSTER_NAME.tfvars -auto-approve || { echo "Terraform apply failed"; exit 1; }
             fi
 
 workflows:
