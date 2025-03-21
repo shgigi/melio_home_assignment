@@ -17,6 +17,37 @@ Resources:
     Properties:
       QueueName: PostRdsClusterQueue
 
+
+  QueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !GetAtt SqsQueue.Arn
+      PolicyDocument:
+        Statement:
+          - Sid: AllowApiGatewayPost
+            Principal: 
+              Service: "apigateway.amazonaws.com"
+            Effect: "Allow"
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt SqsQueue.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn:
+                  !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/Prod/POST"
+          - Sid: AllowLambdaFunction
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Effect: Allow
+            Resource: !GetAtt SqsQueue.Arn
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+              - "sqs:ChangeMessageVisibility"
+
+
   ApiGateway: 
     Type: AWS::Serverless::Api
     Properties:
@@ -64,6 +95,11 @@ Resources:
               responses:
                 '200':
                   description: Successful operation
+              x-amazon-apigateway-request-validator: ValidateBody
+              x-amazon-apigateway-request-validators:
+                ValidateBody:
+                  validateRequestBody: true
+                  validateRequestParameters: false
               x-amazon-apigateway-integration:
                 type: "aws"
                 httpMethod: "POST"
