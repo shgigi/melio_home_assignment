@@ -96,11 +96,6 @@ Resources:
               responses:
                 '200':
                   description: Successful operation
-              x-amazon-apigateway-request-validator: ValidateBody
-              x-amazon-apigateway-request-validators:
-                ValidateBody:
-                  validateRequestBody: true
-                  validateRequestParameters: false
               x-amazon-apigateway-integration:
                 type: "aws"
                 httpMethod: "POST"
