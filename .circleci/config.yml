@@ -66,6 +66,7 @@ jobs:
 
             if [[ -z "$CHANGED_FILE" ]]; then
               echo "No cluster changes detected. Exiting gracefully."
+              exit 0
             else
               CLUSTER_NAME=$(echo "$CHANGED_FILE" | sed -E 's|clusters/(.+)\.tfvars|\1|')
 
