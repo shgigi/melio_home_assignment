@@ -56,10 +56,10 @@ jobs:
       - run:
           name: Detect Changed Cluster and Deploy
           command: |
-            set -x  # Enable command tracing for debugging
+            set -x 
 
             echo "Checking Git log..."
-            git log --oneline -5  # Show last 5 commits for debugging
+            git log --oneline -5
 
             echo "Changed files:"
             git diff --name-only HEAD~1 HEAD || echo "git diff failed"
@@ -81,16 +81,14 @@ jobs:
             terraform apply -var-file=../clusters/$CLUSTER_NAME.tfvars -auto-approve || { echo "Terraform apply failed"; exit 1; }
 
 workflows:
-  # build_and_deploy_sam:
-  #   jobs:
-  #     - build-layer
-  #     - deploy-serverless:
-  #         requires:
-  #           - build-layer
+  build_and_deploy_sam:
+    jobs:
+      - build-layer
+      - deploy-serverless:
+          requires:
+            - build-layer
   deploy_tf_rds_cluster:
     jobs:
-      - deploy-cluster:
-          filters:
-            branches:
-              only: test
+      - deploy-cluster
+
               
