@@ -118,6 +118,8 @@ Resources:
                     statusCode: "200"
         definitions:
           RdsCluster:
+            "$schema": "http://json-schema.org/draft-04/schema#"
+            title: CreateRdsCluster
             type: object
             required:
               - DatabaseName
