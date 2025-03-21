@@ -22,8 +22,9 @@ Resources:
     Type: AWS::SQS::QueuePolicy
     Properties:
       Queues:
-        - !GetAtt SqsQueue.Arn
+        - !Ref SqsQueue
       PolicyDocument:
+        Version: 2012-10-17
         Statement:
           - Sid: AllowApiGatewayPost
             Principal: 
