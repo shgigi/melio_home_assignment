@@ -119,16 +119,22 @@ Resources:
         definitions:
           RdsCluster:
             type: object
+            required:
+              - DatabaseName
+              - DatabaseEngine
+              - Environment
             properties:
-              clusterName:
+              DatabaseName:
                 type: string
                 description: "Name of the RDS cluster"
-              engine:
+              DatabaseEngine:
                 type: string
                 description: "Database engine type"
-              instanceCount:
-                type: integer
-                description: "Number of instances in the cluster"
+                pattern: "^(?i)(mysql|postgresql)$"
+              Environment:
+                type: string
+                description: "Environment of the database"
+                pattern: "^(?i)(prod|dev)$"
  
       # TODO: Domain: Custom Domain Name
       # TODO: EndpointConfiguration:
