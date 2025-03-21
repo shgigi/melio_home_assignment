@@ -13,6 +13,7 @@ provider "aws" {
 
 resource "aws_db_instance" "db_instance" {
   db_name = var.database_name
+  identifier = var.database_name
   engine = local.database_engine
   instance_class = local.environment == "prod" ? "db.4tg.micro" : "db.t3.micro"
   allocated_storage = 20

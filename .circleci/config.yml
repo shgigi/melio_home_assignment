@@ -49,7 +49,7 @@ jobs:
           no_fail_on_empty_changeset: true
           arguments: "--no-confirm-changeset"
    
-  deploy-cluster:
+  deploy-rds-cluster:
     executor: terraform
     steps:
       - checkout
@@ -83,12 +83,14 @@ jobs:
 workflows:
   build_and_deploy_sam:
     jobs:
-      - build-layer
+      - build-layer:
+          filters:
+            branches:
+              only: master
       - deploy-serverless:
           requires:
             - build-layer
-  deploy_tf_rds_cluster:
-    jobs:
-      - deploy-cluster
+      - deploy-rds-cluster:
+          requires: 
+            - deploy-serverless
 
-              
