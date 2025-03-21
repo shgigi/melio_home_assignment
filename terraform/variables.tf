@@ -7,10 +7,10 @@ variable "database_name" {
 variable "database_engine" {
   type = string
   nullable = false
-  description = "Database engine, either MySQL or PostgreSQL"
+  description = "Database engine, either MySQL or Postgres"
   validation {
-    condition = lower(var.database_engine)  == "mysql" || lower(var.database_engine) == "postgresql"
-    error_message = "DatabaseEngine must be one of: [mysql, postgresql]"
+    condition = lower(var.database_engine)  == "mysql" || lower(var.database_engine) == "postgres"
+    error_message = "DatabaseEngine must be one of: [mysql, postgres]"
   }
 }
 

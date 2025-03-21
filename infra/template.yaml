@@ -135,7 +135,7 @@ Resources:
                 type: string
                 enum:
                 - MySQL
-                - PostgreSQL
+                - Postgres
               Environment:
                 type: string
                 enum:
