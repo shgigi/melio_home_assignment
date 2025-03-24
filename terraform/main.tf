@@ -35,5 +35,5 @@ resource "aws_ssm_parameter" "db_username" {
 resource "aws_ssm_parameter" "db_password_secret" {
   name = "/databases/${local.database_engine}/${var.database_name}/secret"
   type = "String"
-  insecure_value = aws_db_instance.db_instance.master_user_secret[0].secret_arn
+  value = aws_db_instance.db_instance.master_user_secret[0].secret_arn
 }
