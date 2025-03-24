@@ -19,7 +19,7 @@ The solution currently support setting the database's name, its engine (either M
 - A certificate in ACM to be used for a custom domain for API Gateway
 - A registered domain in Route 53 or another registrar for a custom domain for API Gateway
 - A DNS record for the registered domain, in a Route 53 hosted zone
-- Github token with `read` and `write` access to `code`, `commit status`, and `pull requests` in your repository.
+- Github token with `read` and `write` access to `contents`, `commit status`, and `pull requests` in your repository.
 - Access key with permissions to deploy the following services on AWS:
     - API Gateway
     - SQS
@@ -29,6 +29,7 @@ The solution currently support setting the database's name, its engine (either M
     - SSM Parameter Store
     - CloudFormation
     - S3
+    - IAM
 
 To start deploying this solution, fork or clone this repository to your own. Go to the `infra/template.yaml` and set the Mappings value as follows:
 
@@ -38,8 +39,10 @@ To start deploying this solution, fork or clone this repository to your own. Go 
 - `ApiGateway.Domain.CertificateArn` - ARN for the previously descibed certificate
 - `ApiGateway.Domain.Name` - The registered domain name for the API Gateway
 
+Make sure to push these changes to your repository.
+
 Next, create a CircleCI project for your repository. Follow the instructions on CircleCI and make sure the `.circleci/config.yml` file is selected as the config.
-For the triggers, create a single trggier for `Pushes to default branch`.
+For the triggers, create a single trigger for `Pushes to default branch`.
 Finish the setup and go to the project's environment variables. you must set the following variables:
 - `AWS_ACCESS_KEY` - Access key ID with appropriate credentials to deploy the solution
 - `AWS_SECRET_ACCESS_KEY` - Secret access key for the access key
