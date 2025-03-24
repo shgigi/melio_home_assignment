@@ -1,8 +1,17 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: 'infra
+Description: 'infra'
 
-  '
+Mappings:
+  Lambda:
+    Variables:
+      RepoOwner: # PLACE REPOSITORY OWNER HERE
+      RepoName: # PLACE REPOSITORY NAME HERE
+      GithubToken:  # PLACE TOKEN HERE
+  ApiGateway:
+    Domain:
+      CertificateArn: #PLACE CERTIFICATE ARN HERE
+      Name: # PLACE REGISTERED DOMAIN NAME HERE
 Globals:
   Function:
     Timeout: 30
@@ -56,19 +65,13 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       Name: CreateRdsCluster
-      Description: 'Provides developers with a method to create
-
-        RDS clusters on-demand.
-
-        '
+      Description: 'Provides developers with a method to createRDS clusters on-demand.'
       ApiKeySourceType: HEADER
       Auth:
         ApiKeyRequired: true
         UsagePlan:
           CreateUsagePlan: PER_API
-          Description: 'Usage plan for RDSCluster
-
-            '
+          Description: 'Usage plan for RDSCluster'
           Quota:
             Limit: 50
             Period: DAY
@@ -80,13 +83,7 @@ Resources:
         info:
           title: API Gateway - Developer Platform
           version: 1.0
-          description: 'This API Gateway enables developers to create
-
-            different AWS resources on-demand and without
-
-            manual work or interventions.
-
-            '
+          description: 'This API Gateway enables developers to create different AWS resources on-demand and without manual work or interventions.'
         paths:
           /rdscluster:
             post:
@@ -169,6 +166,11 @@ Resources:
               - Dev
       StageName: Prod
       TracingEnabled: false
+      EndpointConfiguration:
+        Type:  REGIONAL
+      Domain:
+        CertificateArn: !FindInMap [ApiGateway, Domain, CertificateArn]
+        DomainName: !FindInMap [ApiGateway, Domain, Name]
     Metadata:
       SamResourceId: ApiGateway
   ApiGatewaySqsRole:
@@ -205,8 +207,11 @@ Resources:
       - x86_64
       Environment:
         Variables:
+          REPO_OWNER: !FindInMap [Lambda, Variables, RepoOwner]
+          REPO_NAME: !FindInMap [Lambda, Variables, RepoName]
           QUEUE_URL: !GetAtt SqsQueue.QueueUrl
-          GITHUB_TOKEN: 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
+          GITHUB_TOKEN: !FindInMap [Lambda, Variables, GithubToken]
+      Role: !GetAtt LambdaRole.Arn
       Events:
         SQSEvent:
           Type: SQS
@@ -228,6 +233,30 @@ Resources:
       RetentionPolicy: Delete
     Metadata:
       SamResourceId: PythonLayer
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+              - Sid: AllowLambdaAssume
+                Principal:
+                  Service: lambda.amazonaws.com
+                Effect: Allow
+                Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
+      Policies:
+        - PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: ConsumeFromQueue
+                Effect: Allow
+                Action: 
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Resource: !GetAtt SqsQueue.Arn
+          PolicyName: ConsumeFromSqs
 Outputs:
   ApiGateway:
     Description: API Gateway endpoint URL for Prod stage for Hello World function

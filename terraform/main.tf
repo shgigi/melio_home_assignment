@@ -31,3 +31,9 @@ resource "aws_ssm_parameter" "db_username" {
   type = "String"
   value = aws_db_instance.db_instance.username
 }
+
+resource "aws_ssm_parameter" "db_password_secret" {
+  name = "/databases/${local.database_engine}/${var.database_name}/secret"
+  type = "String"
+  value = aws_db_instance.db_instance.master_user_secret[0].secret_arn
+}

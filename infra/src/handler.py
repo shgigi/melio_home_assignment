@@ -15,10 +15,12 @@ logger.setLevel("INFO")
 def get_environment_variables():
     queue_url = os.environ["QUEUE_URL"]
     gh_token = os.environ["GITHUB_TOKEN"]
-    return queue_url, gh_token
+    repo_owner = os.environ["REPO_OWNER"]
+    repo_name = os.environ["REPO_NAME"]
+    return queue_url, gh_token, repo_owner, repo_name
 
 
-def create_pr(message: dict, owner: str, repo: str, token: str) -> None:
+def create_and_merge_pr(message: dict, owner: str, repo: str, token: str) -> None:
     body = json.loads(message["body"])
     database_name = body["DatabaseName"]
     database_engine = body["DatabaseEngine"]
@@ -67,11 +69,15 @@ def create_pr(message: dict, owner: str, repo: str, token: str) -> None:
         head=branch_name,
     )
 
+    res.merge(
+        delete_branch=True,
+    )
+
     logger.info(res)
 
 
 def lambda_handler(event, context):
-    QUEUE_URL, GITHUB_TOKEN = get_environment_variables()
+    QUEUE_URL, GITHUB_TOKEN, REPO_OWNER, REPO_NAME = get_environment_variables()
     sqs_client = boto3.client("sqs")
 
     logger.info(f"EVENT: {event}")
@@ -79,10 +85,10 @@ def lambda_handler(event, context):
     message = event.get("Records")[0]
 
     # 2. Create PR
-    create_pr(
+    create_and_merge_pr(
         message=message,
-        owner="shgigi",
-        repo="melio_home_assignment",
+        owner=REPO_OWNER,
+        repo=REPO_NAME,
         token=GITHUB_TOKEN,
     )
 
